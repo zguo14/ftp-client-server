@@ -7,16 +7,12 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <iostream>
-#include <string>
-#include <vector>
 
 class Network
 {
   public:
     Network();
-    int getFreePortInRange(int low, int high, int protocol);
-    bool isPortFree(int port, int protocol);
+    int getFreePort(int protocol);
     int createTCPSocket();
     int initiateTCPConnection(in_addr_t toAddr, int toPort, int sock_tcp);
     int acceptTCPConnection(int port, int sock_tcp);

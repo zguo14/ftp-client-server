@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 
     std::cout<<mode<<std::endl;
     if (strcmp(mode, "PORT") == 0) {
-        int port = network->getFreePortInRange(1024, 65535, SOCK_STREAM);
+        int port = network->getFreePort(SOCK_STREAM);
         std::string cmd = "PORT " + std::to_string(port) + " " + (std::string)reqCode + " ";
         request = cmd.c_str();
 

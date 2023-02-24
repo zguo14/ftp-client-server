@@ -11,45 +11,34 @@
 
 Network::Network() {}
 
-bool Network::isPortFree(int port, int protocol) {
+int Network::getFreePort(int protocol) {
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
-	addr.sin_port = htons(port);
+	addr.sin_port = 0;
 
     socklen_t socklen = sizeof(addr);
 
     int sock_fd = socket(AF_INET, protocol, 0);
-    if (sock_fd< 0) {
-        return false;
+    if (sock_fd < 0) {
+        std::cout<<"Socket creation failed."<<std::endl;
+        exit(EXIT_FAILURE);
     }
 
-    if (bind(sock_fd, (struct sockaddr *)&addr, socklen) < 0) {
-        return false;
+    if (bind(sock_fd, (struct sockaddr *)&addr, socklen)) {
+        std::cout<<"Socket bind failed."<<std::endl;
+        exit(EXIT_FAILURE);
     }
 
-    if (close(sock_fd) != 0) {
-        return false;
-    }
-
-    return true;
-}
-
-int Network::getFreePortInRange(int low, int high, int protocol) {
-    int port;
-    for (port = low; port <= high; port++) {
-        if (isPortFree(port, protocol)) {
-            break;
-        }
-    }
-    return port;
+    getsockname(sock_fd, (struct sockaddr *)&addr, &socklen);
+    
+    return addr.sin_port;
 }
 
 int Network::createTCPSocket() {
-    int sock_tcp;
-
-    if ((sock_tcp = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+    int sock_tcp = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock_tcp < 0 ) {
         std::cout<<"TCP socket creation failed."<<std::endl;
         exit(EXIT_FAILURE);
     }

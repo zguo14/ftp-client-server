@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 
     Network *network = new Network();
 
-    int serverUDPPort = network->getFreePortInRange(1024, 65535, SOCK_DGRAM);
+    int serverUDPPort = network->getFreePort(SOCK_DGRAM);
     std::cout<<"SERVER_PORT="<<serverUDPPort<<std::endl;
     
 	int sockfd;
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
             }
 
             if (mode == "PASV") {
-                int port = network->getFreePortInRange(1024, 65535, SOCK_STREAM);
+                int port = network->getFreePort(SOCK_STREAM);
                 const char *resp = strdup(std::to_string(port).c_str());
             
                 sendto(sockfd, (const char *)resp, strlen(resp), MSG_CONFIRM, 
