@@ -18,6 +18,9 @@ class Network
     int acceptTCPConnection(int port, int sock_tcp);
     int sendFile(const char* fileName, int sock_fd);
     int receiveFile(const char* fileName, int sock_fd);
+
+    bool checkIPAddr(char* ip);
+    bool checkPort(char* port);
 };
 
 #endif

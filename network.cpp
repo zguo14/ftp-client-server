@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <unistd.h>
-#include "network.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <iostream>
+#include "network.h"
 
 #define MAXLEN 1024
 
@@ -28,6 +28,7 @@ int Network::getFreePort(int protocol) {
 
     if (bind(sock_fd, (struct sockaddr *)&addr, socklen)) {
         std::cout<<"Socket bind failed."<<std::endl;
+        close(sock_fd);
         exit(EXIT_FAILURE);
     }
 
@@ -55,6 +56,7 @@ int Network::initiateTCPConnection(in_addr_t toAddr, int toPort, int sock_tcp) {
 
     if (connect(sock_tcp, (struct sockaddr *)&clientAddr, sizeof(clientAddr)) < 0) {
         std::cout<<"TCP socket connect failed."<<std::endl;
+        close(sock_tcp);
         exit(EXIT_FAILURE);
     }
     
@@ -71,11 +73,13 @@ int Network::acceptTCPConnection(int port, int sock_tcp) {
 
     if(bind(sock_tcp, (struct sockaddr* ) &serverAddr, sizeof(serverAddr)) < 0) {
         std::cout<<"TCP socket bind error."<<std::endl;
+        close(sock_tcp);
         exit(EXIT_FAILURE);
     }
 
     if(listen(sock_tcp, 10) < 0 ) {
         std::cout<<"TCP socket listen error."<<std::endl;
+        close(sock_tcp);
         exit(EXIT_FAILURE);
     }
 
@@ -84,6 +88,7 @@ int Network::acceptTCPConnection(int port, int sock_tcp) {
 
     if (conn < 0) {
         std::cout<<"TCP socket accept error."<<std::endl;
+        close(sock_tcp);
         exit(EXIT_FAILURE);
     }
 
@@ -99,16 +104,20 @@ int Network::sendFile(const char* fileName, int sock_fd) {
 
     char Buffer[MAXLEN];
     unsigned long long size = 0;
+    unsigned long long total = 0;
 
     while ((size = fread(Buffer, sizeof(char), MAXLEN, fp))) {
-        std::cout<<"File sending, size is: "<<size<<std::endl;
+        // std::cout<<"File sending, size is: "<<size<<std::endl;
         if (send(sock_fd, Buffer, size, 0) < 0) {
             std::cout<<"TCP socket send error."<<std::endl;
         }
+        total +=size;
         memset(&Buffer, 0, MAXLEN); // Empty the buffer.
     }
 
-    return size; // todoss
+    std::cout<<"File sent, size: "<<total<<std::endl;
+
+    return total; // todoss
 }
 
 int Network::receiveFile(const char* fileName, int sock_fd) {
@@ -128,3 +137,33 @@ int Network::receiveFile(const char* fileName, int sock_fd) {
     
     return size;
 }
+
+bool Network::checkIPAddr(char* ip) {
+    struct sockaddr_in sa;
+    int result = inet_pton(AF_INET, ip, &(sa.sin_addr));
+    return result != 0;
+}
+
+bool isNumeric(std::string const &str) {
+    auto it = str.begin();
+    while (it != str.end() && std::isdigit(*it)) {
+        it++;
+    }
+    return !str.empty() && it == str.end();
+}
+
+bool Network::checkPort(char* port) {
+    std::string portStr = (std::string) port;
+    int portNum = stoi(portStr);
+
+    if (!isNumeric(portStr)) {
+        return false;
+    }
+
+    if (portNum >= 1 && portNum <= 65535) {
+        return true;
+    }
+
+    return false;
+}
+
