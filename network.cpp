@@ -11,6 +11,39 @@
 
 Network::Network() {}
 
+int Network::createUDPSocket() {
+    int sock_udp = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock_udp < 0 ) {
+        std::cout<<"UDP socket creation failed"<<std::endl;
+		exit(EXIT_FAILURE);
+	}
+    return sock_udp;
+}
+
+int Network::bindUDPSocket(int sock_udp, sockaddr_in addr) {
+    int n = bind(sock_udp, (const struct sockaddr *)&addr, sizeof(addr));
+    if (n < 0 ) {
+        std::cout<<"UDP socket bind failed"<<std::endl;
+		exit(EXIT_FAILURE);
+	}
+    return n;
+}
+
+int Network::sendToUDPSocket(int sock_udp, const char * resp, sockaddr_in addr) {
+    socklen_t len = sizeof(addr);
+    int n = sendto(sock_udp, (const char *)resp, strlen(resp), 0, 
+                (const struct sockaddr *) &addr,len);
+    return n;
+}
+
+int Network::recvFromUDPSocket(int sock_udp, sockaddr_in &addr, char * buffer) {
+    socklen_t len = sizeof(addr);
+    int n = recvfrom(sock_udp, (char *)buffer, MAXLEN,
+				MSG_WAITALL, (struct sockaddr *) &addr, &len);
+    return n;
+}
+
+// Get free port number by protocols(TCP/UDP).
 int Network::getFreePort(int protocol) {
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
@@ -43,10 +76,10 @@ int Network::createTCPSocket() {
         std::cout<<"TCP socket creation failed."<<std::endl;
         exit(EXIT_FAILURE);
     }
-
     return sock_tcp;
 }
 
+// TCP connect
 int Network::initiateTCPConnection(in_addr_t toAddr, int toPort, int sock_tcp) {
     struct sockaddr_in clientAddr;
     memset(&clientAddr, 0, sizeof(clientAddr));
@@ -63,6 +96,7 @@ int Network::initiateTCPConnection(in_addr_t toAddr, int toPort, int sock_tcp) {
     return sock_tcp;
 }
 
+// TCP bind, listen and accept
 int Network::acceptTCPConnection(int port, int sock_tcp) {
     struct sockaddr_in serverAddr, clientAddr;
     memset(&serverAddr, 0, sizeof(serverAddr));
@@ -95,6 +129,7 @@ int Network::acceptTCPConnection(int port, int sock_tcp) {
     return conn;
 }
 
+// Sendfile to socket.
 int Network::sendFile(const char* fileName, int sock_fd) {
     FILE* fp = fopen(fileName, "rb");
     if (fp == NULL) {
@@ -107,11 +142,10 @@ int Network::sendFile(const char* fileName, int sock_fd) {
     unsigned long long total = 0;
 
     while ((size = fread(Buffer, sizeof(char), MAXLEN, fp))) {
-        // std::cout<<"File sending, size is: "<<size<<std::endl;
         if (send(sock_fd, Buffer, size, 0) < 0) {
             std::cout<<"TCP socket send error."<<std::endl;
         }
-        total +=size;
+        total += size;
         memset(&Buffer, 0, MAXLEN); // Empty the buffer.
     }
 
@@ -120,6 +154,7 @@ int Network::sendFile(const char* fileName, int sock_fd) {
     return total; // todoss
 }
 
+// Receive file from socket and write local file.
 int Network::receiveFile(const char* fileName, int sock_fd) {
     char Buffer[MAXLEN];
     memset(&Buffer, 0, MAXLEN);
@@ -130,6 +165,7 @@ int Network::receiveFile(const char* fileName, int sock_fd) {
     std::cout<<"File received, size is: "<<size<<std::endl;
 
     FILE* fp = fopen(fileName, "wb");
+    // Max file size is 1024.
     if (fwrite(Buffer, sizeof(char), size, fp) < size) {
         std::cout<<"File write error."<<std::endl;
         exit(EXIT_FAILURE);
@@ -152,6 +188,7 @@ bool isNumeric(std::string const &str) {
     return !str.empty() && it == str.end();
 }
 
+
 bool Network::checkPort(char* port) {
     std::string portStr = (std::string) port;
     int portNum = stoi(portStr);
@@ -167,3 +204,10 @@ bool Network::checkPort(char* port) {
     return false;
 }
 
+
+bool Network::checkFileExist(char * fileName) {
+    if (FILE *file = fopen(fileName, "r")) {
+        return true;
+    }
+    return false;
+}

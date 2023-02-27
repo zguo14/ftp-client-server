@@ -11,6 +11,16 @@
 #Uncomment/update exactly one of the following commands depending on implementation
 
 #For C/C++ implementation
+
+if [ $# != 2 ]
+then
+    # echo
+    echo Invalid params. 
+    echo Usage: ./server.sh \<req_code\> \<file_name\>
+    exit 1
+    # echo
+fi
+
 ./server $1 "$2"
 
 #For Java implementation

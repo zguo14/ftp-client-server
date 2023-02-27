@@ -1,0 +1,12 @@
+To run the program:
+    ./server.sh <req_code> 'sent.txt'
+    ./client.sh <server address> <n_port> <mode> <req_code> 'received.txt'
+
+Tested on ubuntu2004-002.student.cs.uwaterloo.ca and ubuntu2004-010.student.cs.uwaterloo.ca machines.
+
+Make: GNU Make 4.2.1
+
+Compiler: g++ -std=c++11
+
+
+

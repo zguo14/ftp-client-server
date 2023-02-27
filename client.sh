@@ -14,6 +14,17 @@
 #Uncomment/update exactly one of the following commands depending on your implementation
 
 #For C/C++ implementation
+
+
+if [ $# != 5 ]
+then
+    # echo
+    echo Invalid params. 
+    echo Usage: ./client.sh \<server address\> \<n_port\> \<mode\> \<req_code\> \<file_name\>
+    exit 1
+    # echo
+fi
+
 ./client $1 $2 "$3" $4 "$5"
 
 #For Java implementation
